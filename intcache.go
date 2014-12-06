@@ -44,19 +44,22 @@ func (c *IntCache) Get(key int) interface{} {
 	return item.value
 }
 
+func (c *IntCache) Replace(key int, value interface{}) {
+	c.RLock()
+	_, exists := c.items[key]
+	c.RUnlock()
+	if exists == false {
+		return
+	}
+	c.set(key, value)
+}
+
 func (c *IntCache) fetch(key int) interface{} {
 	value := c.fetcher(key)
 	if value == nil {
 		return nil
 	}
-
-	c.Lock()
-	c.items[key] = &Item{
-		value:   value,
-		expires: time.Now().Add(c.ttl),
-	}
-	c.Unlock()
-
+	c.set(key, value)
 	c.fetchingLock.Lock()
 	delete(c.fetchings, key)
 	c.fetchingLock.Unlock()
@@ -82,6 +85,15 @@ func (c *IntCache) reaper() {
 		time.Sleep(REAPER_FREQUENCY)
 		c.reap(scratch)
 	}
+}
+
+func (c *IntCache) set(key int, value interface{}) {
+	c.Lock()
+	c.items[key] = &Item{
+		value:   value,
+		expires: time.Now().Add(c.ttl),
+	}
+	c.Unlock()
 }
 
 func (c *IntCache) reap(scratch []int) {

@@ -21,6 +21,11 @@ app := apps.Get("spice").(*Application)
 
 There's a short 20 second grace window in which an expired item will be returned. In other words, the real TTL of items placed in the above cache is 120-140seconds. Even if multiple goroutines concurrently GET an item which is in this grace window, only 1 call to fetcher will be executed.
 
+## Methods
+
+- `Get(key string)` - Returns the value or nil. Either gets it from the cache or fetches it via the fetcher
+- `Replace(key string, value interface{})` - Replaces an existing value, extending it's TTL. Noop if key isn't already in the cache
+
 ## Integer Keys
 
 By default, the cache key is a string. You can create a cache that uses an integer key by using `NewInt` (instead of `New`). Everything works the same, except keys are `int`.

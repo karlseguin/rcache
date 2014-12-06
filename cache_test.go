@@ -63,6 +63,19 @@ func (ct CacheTest) ReapsExpiredItem() {
 	Expect(c.Get("d")).To.Equal("d-fetch-4")
 }
 
+func (ct *CacheTest) ReplaceNoopsOnNonExist() {
+	c := New(ct.DumbFetcher, time.Minute)
+	c.Replace("a", "value")
+	Expect(len(c.items)).To.Equal(0)
+}
+
+func (ct *CacheTest) ReplacesAValue() {
+	c := New(ct.DumbFetcher, time.Minute)
+	c.Get("a")
+	c.Replace("a", "b")
+	Expect(c.Get("a")).To.Equal("b")
+}
+
 func (ct *CacheTest) DumbFetcher(key string) interface{} {
 	ct.fetchCount += 1
 	return key + "-fetch-" + strconv.Itoa(ct.fetchCount)

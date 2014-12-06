@@ -51,19 +51,22 @@ func (c *Cache) Get(key string) interface{} {
 	return item.value
 }
 
+func (c *Cache) Replace(key string, value interface{}) {
+	c.RLock()
+	_, exists := c.items[key]
+	c.RUnlock()
+	if exists == false {
+		return
+	}
+	c.set(key, value)
+}
+
 func (c *Cache) fetch(key string) interface{} {
 	value := c.fetcher(key)
 	if value == nil {
 		return nil
 	}
-
-	c.Lock()
-	c.items[key] = &Item{
-		value:   value,
-		expires: time.Now().Add(c.ttl),
-	}
-	c.Unlock()
-
+	c.set(key, value)
 	c.fetchingLock.Lock()
 	delete(c.fetchings, key)
 	c.fetchingLock.Unlock()
@@ -81,6 +84,15 @@ func (c *Cache) cfetch(key string) {
 	c.fetchings[key] = now
 	c.fetchingLock.Unlock()
 	c.fetch(key)
+}
+
+func (c *Cache) set(key string, value interface{}) {
+	c.Lock()
+	c.items[key] = &Item{
+		value:   value,
+		expires: time.Now().Add(c.ttl),
+	}
+	c.Unlock()
 }
 
 func (c *Cache) reaper() {
