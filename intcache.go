@@ -5,44 +5,29 @@ import (
 	"time"
 )
 
-var (
-	GRACE_LIMIT      = time.Second * 20
-	FETCH_TIME_LIMIT = time.Second * 5
-	REAPER_FREQUENCY = time.Minute * 5
-	REAPER_LIMIT     = 1000
-)
+type IntFetcher func(key int) interface{}
 
-type Fetcher func(key string) interface{}
-
-type state int
-
-const (
-	ok = iota
-	stale
-	expired
-)
-
-type Cache struct {
+type IntCache struct {
 	sync.RWMutex
-	fetcher      Fetcher
+	fetcher      IntFetcher
 	ttl          time.Duration
-	items        map[string]*Item
+	items        map[int]*Item
 	fetchingLock sync.Mutex
-	fetchings    map[string]time.Time
+	fetchings    map[int]time.Time
 }
 
-func New(fetcher Fetcher, ttl time.Duration) *Cache {
-	c := &Cache{
+func NewInt(fetcher IntFetcher, ttl time.Duration) *IntCache {
+	c := &IntCache{
 		ttl:       ttl,
 		fetcher:   fetcher,
-		items:     make(map[string]*Item),
-		fetchings: make(map[string]time.Time),
+		items:     make(map[int]*Item),
+		fetchings: make(map[int]time.Time),
 	}
 	go c.reaper()
 	return c
 }
 
-func (c *Cache) Get(key string) interface{} {
+func (c *IntCache) Get(key int) interface{} {
 	c.RLock()
 	item, exists := c.items[key]
 	c.RUnlock()
@@ -59,7 +44,7 @@ func (c *Cache) Get(key string) interface{} {
 	return item.value
 }
 
-func (c *Cache) fetch(key string) interface{} {
+func (c *IntCache) fetch(key int) interface{} {
 	value := c.fetcher(key)
 	if value == nil {
 		return nil
@@ -78,7 +63,7 @@ func (c *Cache) fetch(key string) interface{} {
 	return value
 }
 
-func (c *Cache) cfetch(key string) {
+func (c *IntCache) cfetch(key int) {
 	now := time.Now()
 	c.fetchingLock.Lock()
 	start, exists := c.fetchings[key]
@@ -91,15 +76,15 @@ func (c *Cache) cfetch(key string) {
 	c.fetch(key)
 }
 
-func (c *Cache) reaper() {
-	scratch := make([]string, REAPER_LIMIT)
+func (c *IntCache) reaper() {
+	scratch := make([]int, REAPER_LIMIT)
 	for {
 		time.Sleep(REAPER_FREQUENCY)
 		c.reap(scratch)
 	}
 }
 
-func (c *Cache) reap(scratch []string) {
+func (c *IntCache) reap(scratch []int) {
 	count, victims := 0, 0
 	c.RLock()
 	for key, item := range c.items {
@@ -121,20 +106,4 @@ func (c *Cache) reap(scratch []string) {
 	for i := 0; i < victims; i++ {
 		delete(c.items, scratch[i])
 	}
-}
-
-type Item struct {
-	expires time.Time
-	value   interface{}
-}
-
-func (i *Item) State() state {
-	d := time.Now().Sub(i.expires)
-	if d < 0 {
-		return ok
-	}
-	if d > GRACE_LIMIT {
-		return expired
-	}
-	return stale
 }
