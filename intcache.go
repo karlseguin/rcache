@@ -51,7 +51,7 @@ func (c *IntCache) Replace(key int, value interface{}) {
 	if exists == false {
 		return
 	}
-	c.set(key, value)
+	c.Set(key, value)
 }
 
 func (c *IntCache) fetch(key int) interface{} {
@@ -59,7 +59,7 @@ func (c *IntCache) fetch(key int) interface{} {
 	if value == nil {
 		return nil
 	}
-	c.set(key, value)
+	c.Set(key, value)
 	c.fetchingLock.Lock()
 	delete(c.fetchings, key)
 	c.fetchingLock.Unlock()
@@ -87,7 +87,7 @@ func (c *IntCache) reaper() {
 	}
 }
 
-func (c *IntCache) set(key int, value interface{}) {
+func (c *IntCache) Set(key int, value interface{}) {
 	c.Lock()
 	c.items[key] = &Item{
 		value:   value,

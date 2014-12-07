@@ -26,6 +26,13 @@ func (ct IntCacheTest) ReturnsACachedItem() {
 	Expect(c.Get(1)).To.Equal("1-fetch-1")
 }
 
+func (ct IntCacheTest) SetsAnItem() {
+	c := NewInt(nil, time.Minute)
+	c.Set(1234, 4321)
+	c.Get(1234)
+	Expect(c.Get(1234)).To.Equal(4321)
+}
+
 func (ct IntCacheTest) FetchesAnExpiredItem() {
 	c := NewInt(ct.DumbFetcher, time.Minute)
 	c.Get(2)

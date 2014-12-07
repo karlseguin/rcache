@@ -58,7 +58,7 @@ func (c *Cache) Replace(key string, value interface{}) {
 	if exists == false {
 		return
 	}
-	c.set(key, value)
+	c.Set(key, value)
 }
 
 func (c *Cache) fetch(key string) interface{} {
@@ -66,7 +66,7 @@ func (c *Cache) fetch(key string) interface{} {
 	if value == nil {
 		return nil
 	}
-	c.set(key, value)
+	c.Set(key, value)
 	c.fetchingLock.Lock()
 	delete(c.fetchings, key)
 	c.fetchingLock.Unlock()
@@ -86,7 +86,7 @@ func (c *Cache) cfetch(key string) {
 	c.fetch(key)
 }
 
-func (c *Cache) set(key string, value interface{}) {
+func (c *Cache) Set(key string, value interface{}) {
 	c.Lock()
 	c.items[key] = &Item{
 		value:   value,
