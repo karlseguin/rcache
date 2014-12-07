@@ -26,6 +26,7 @@ There's a short 20 second grace window in which an expired item will be returned
 - `Get(key string)` - Returns the value or nil. Either gets it from the cache or fetches it via the fetcher
 - `Set(key string, value interface{})` - Sets the value
 - `Replace(key string, value interface{})` - Replaces an existing value, extending it's TTL. Noop if key isn't already in the cache
+- `Delete(key string)` - Deletes an item
 
 ## Integer Keys
 

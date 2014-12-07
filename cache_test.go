@@ -26,6 +26,13 @@ func (ct CacheTest) ReturnsACachedItem() {
 	Expect(c.Get("spice")).To.Equal("spice-fetch-1")
 }
 
+func (ct CacheTest) DeletesAnItem() {
+	c := New(ct.DumbFetcher, time.Minute)
+	c.Get("spice")
+	c.Delete("spice")
+	Expect(c.Get("spice")).To.Equal("spice-fetch-2")
+}
+
 func (ct CacheTest) SetsAnItem() {
 	c := New(nil, time.Minute)
 	c.Set("power", 9001)

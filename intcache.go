@@ -54,6 +54,12 @@ func (c *IntCache) Replace(key int, value interface{}) {
 	c.Set(key, value)
 }
 
+func (c *IntCache) Delete(key int) {
+	c.RLock()
+	delete(c.items, key)
+	c.RUnlock()
+}
+
 func (c *IntCache) fetch(key int) interface{} {
 	value := c.fetcher(key)
 	if value == nil {
