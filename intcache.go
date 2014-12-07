@@ -60,6 +60,12 @@ func (c *IntCache) Delete(key int) {
 	c.RUnlock()
 }
 
+func (c *IntCache) Clear() {
+	c.RLock()
+	c.items = make(map[int]*Item)
+	c.RUnlock()
+}
+
 func (c *IntCache) fetch(key int) interface{} {
 	value := c.fetcher(key)
 	if value == nil {

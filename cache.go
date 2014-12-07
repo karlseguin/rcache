@@ -67,6 +67,12 @@ func (c *Cache) Delete(key string) {
 	c.RUnlock()
 }
 
+func (c *Cache) Clear() {
+	c.RLock()
+	c.items = make(map[string]*Item)
+	c.RUnlock()
+}
+
 func (c *Cache) fetch(key string) interface{} {
 	value := c.fetcher(key)
 	if value == nil {

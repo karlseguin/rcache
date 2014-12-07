@@ -33,6 +33,15 @@ func (ct IntCacheTest) DeletesAnItem() {
 	Expect(c.Get(1)).To.Equal("1-fetch-2")
 }
 
+func (ct IntCacheTest) ClearsTheCache() {
+	c := NewInt(ct.DumbFetcher, time.Minute)
+	c.Get(1)
+	c.Get(2)
+	c.Clear()
+	Expect(c.Get(1)).To.Equal("1-fetch-3")
+	Expect(c.Get(2)).To.Equal("2-fetch-4")
+}
+
 func (ct IntCacheTest) SetsAnItem() {
 	c := NewInt(nil, time.Minute)
 	c.Set(1234, 4321)
