@@ -55,15 +55,15 @@ func (c *IntCache) Replace(key int, value interface{}) {
 }
 
 func (c *IntCache) Delete(key int) {
-	c.RLock()
+	c.Lock()
 	delete(c.items, key)
-	c.RUnlock()
+	c.Unlock()
 }
 
 func (c *IntCache) Clear() {
-	c.RLock()
+	c.Lock()
 	c.items = make(map[int]*Item)
-	c.RUnlock()
+	c.Unlock()
 }
 
 func (c *IntCache) fetch(key int) interface{} {
@@ -100,11 +100,12 @@ func (c *IntCache) reaper() {
 }
 
 func (c *IntCache) Set(key int, value interface{}) {
-	c.Lock()
-	c.items[key] = &Item{
+	item := &Item{
 		value:   value,
 		expires: time.Now().Add(c.ttl),
 	}
+	c.Lock()
+	c.items[key] = item
 	c.Unlock()
 }
 

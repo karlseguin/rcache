@@ -62,15 +62,15 @@ func (c *Cache) Replace(key string, value interface{}) {
 }
 
 func (c *Cache) Delete(key string) {
-	c.RLock()
+	c.Lock()
 	delete(c.items, key)
-	c.RUnlock()
+	c.Unlock()
 }
 
 func (c *Cache) Clear() {
-	c.RLock()
+	c.Lock()
 	c.items = make(map[string]*Item)
-	c.RUnlock()
+	c.Unlock()
 }
 
 func (c *Cache) fetch(key string) interface{} {
@@ -99,11 +99,12 @@ func (c *Cache) cfetch(key string) {
 }
 
 func (c *Cache) Set(key string, value interface{}) {
-	c.Lock()
-	c.items[key] = &Item{
+	item := &Item{
 		value:   value,
 		expires: time.Now().Add(c.ttl),
 	}
+	c.Lock()
+	c.items[key] = item
 	c.Unlock()
 }
 
