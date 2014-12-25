@@ -39,11 +39,11 @@ func (c *Cache) Get(key string) interface{} {
 	item, exists := c.items[key]
 	c.RUnlock()
 	if exists == false {
-		return c.fetch(key)
+		return c.fetch(key, false)
 	}
 	state := item.State()
 	if state == expired {
-		return c.fetch(key)
+		return c.fetch(key, false)
 	}
 	if state == stale {
 		go c.cfetch(key)
@@ -73,15 +73,17 @@ func (c *Cache) Clear() {
 	c.Unlock()
 }
 
-func (c *Cache) fetch(key string) interface{} {
+func (c *Cache) fetch(key string, conditional bool) interface{} {
 	value := c.fetcher(key)
 	if value == nil {
 		return nil
 	}
 	c.Set(key, value)
-	c.fetchingLock.Lock()
-	delete(c.fetchings, key)
-	c.fetchingLock.Unlock()
+	if conditional {
+		c.fetchingLock.Lock()
+		delete(c.fetchings, key)
+		c.fetchingLock.Unlock()
+	}
 	return value
 }
 
@@ -95,7 +97,7 @@ func (c *Cache) cfetch(key string) {
 	}
 	c.fetchings[key] = now
 	c.fetchingLock.Unlock()
-	c.fetch(key)
+	c.fetch(key, true)
 }
 
 func (c *Cache) Set(key string, value interface{}) {
