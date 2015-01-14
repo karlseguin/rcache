@@ -86,13 +86,10 @@ func (c *IntCache) cfetch(key int) {
 	c.fetchings[key] = now
 	c.fetchingLock.Unlock()
 
-	value := c.fetcher(key)
+	c.fetch(key)
 	c.fetchingLock.Lock()
 	delete(c.fetchings, key)
 	c.fetchingLock.Unlock()
-	if value != nil {
-		c.Set(key, value)
-	}
 }
 
 func (c *IntCache) reaper() {

@@ -93,13 +93,10 @@ func (c *Cache) cfetch(key string) {
 	c.fetchings[key] = now
 	c.fetchingLock.Unlock()
 
-	value := c.fetcher(key)
+	c.fetch(key)
 	c.fetchingLock.Lock()
 	delete(c.fetchings, key)
 	c.fetchingLock.Unlock()
-	if value != nil {
-		c.Set(key, value)
-	}
 }
 
 func (c *Cache) Set(key string, value interface{}) {
