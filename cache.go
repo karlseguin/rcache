@@ -85,12 +85,12 @@ func (c *Cache) fetch(key string) interface{} {
 func (c *Cache) cfetch(key string) {
 	now := time.Now()
 	c.fetchingLock.Lock()
-	start, exists := c.fetchings[key]
-	if exists && start.Add(FETCH_TIME_LIMIT).Before(now) {
+	expires := c.fetchings[key]
+	if now.Before(expires) {
 		c.fetchingLock.Unlock()
 		return
 	}
-	c.fetchings[key] = now
+	c.fetchings[key] = now.Add(FETCH_TIME_LIMIT)
 	c.fetchingLock.Unlock()
 
 	c.fetch(key)
